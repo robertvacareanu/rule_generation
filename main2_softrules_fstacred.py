@@ -189,6 +189,7 @@ if __name__ == '__main__':
     for (i, line) in tqdm.tqdm(enumerate(output), total=len(output)):
 
         filename = line['id'] + '.json.gz'
+        # We know that we processed each file and we saved it using its id as its name
         sentence = Document.from_file(f'/data/nlp/corpora/softrules_221010/fstacred/odinson/docs/{filename}').sentences[0] # Sentence.from_dict(sentence)
 
         sentence_tokens     = sentence.get_field("raw").tokens
