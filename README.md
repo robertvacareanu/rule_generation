@@ -12,3 +12,5 @@ The code is organized as follows:
     - `simplified syntax` -> A rule that uses only surface constraints, but over the dependency graph (e.g. `[word=fox] [word=jumped] [tag=NN]` to match the words `fox jumped dod` (or the two animals, if namdd captures are added))
     - `syntax`            -> A rule that uses only syntax constraints (e.g. `[word=fox] <nsubj >dobj [word=dog]`)
     - `ehanced syntax`    -> A rule that uses a mix of surface and syntax constraints (e.g. `[word=fox] <nsubj jumped >dobj [word=dog]`)
+
+Note: Many paths are hardcoded in those files. For TACRED (and Few-Shot TACRED), the way it works is by pre-processing each sentence beforehand. Then, we save the result of this pre-processing in a folder using the sentence id as its name. We then use this id to access it. Pre-processing means tokenization, part-of-speech tagging and dependency parsing.
