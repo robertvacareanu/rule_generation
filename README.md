@@ -13,4 +13,6 @@ The code is organized as follows:
     - `syntax`            -> A rule that uses only syntax constraints (e.g. `[word=fox] <nsubj >dobj [word=dog]`)
     - `ehanced syntax`    -> A rule that uses a mix of surface and syntax constraints (e.g. `[word=fox] <nsubj jumped >dobj [word=dog]`)
 
+Particular to `main2_softrules` file, we use use a `.tsv` file hardcoded in the script (`220929_data.tsv`). This file was created by using odinson with rules such as `(?<head> [entity=ORGANIZATION]+) []{0,7} (?<tail> [entity=DATE]+)` and recording the sentence that it matched. This will then be used to construct a rule that will match the `<head>` and the `<tail>`.
+
 Note: Many paths are hardcoded in those files. For TACRED (and Few-Shot TACRED), the way it works is by pre-processing each sentence beforehand. Then, we save the result of this pre-processing in a folder using the sentence id as its name. We then use this id to access it. Pre-processing means tokenization, part-of-speech tagging and dependency parsing.
