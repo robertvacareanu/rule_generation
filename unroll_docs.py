@@ -17,6 +17,7 @@ def line_to_hash(line: Dict[str, Any], use_all_fields: bool = False):
             str(line['obj_end']),
             str(line['subj_type']),
             str(line['obj_type']),
+            str(line['relation']),
         ]
     else:
         name_variables = [
