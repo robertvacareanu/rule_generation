@@ -145,7 +145,7 @@ class RuleGeneration2:
                 if lookahead:
                     pattern += f" (?={lookahead})"
                 # execute modified rule
-                results = self.corpus.search(pattern, self.num_matches)
+                results = self.corpus.search(pattern, max_hits=self.num_matches)
                 # find an alternative
                 score_doc = random.choice(results.docs)
                 sentence = self.corpus.get_sentence(score_doc)

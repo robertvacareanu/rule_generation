@@ -25,6 +25,7 @@ from odinsynth.index import IndexedCorpus
 from odinsynth.util import read_tsv_mapping, weighted_choice
 from odinson.gateway.document import Sentence, Document
 from rulegen2 import RuleGeneration2
+from unroll_docs import line_to_hash
 
 def quit_function():
     thread.interrupt_main()
@@ -65,23 +66,24 @@ if __name__ == '__main__':
     random.seed(1)
     # command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--out-dir', type=Path)
-    parser.add_argument('--data-dir', type=Path, default=Path('/data/nlp/corpora/umbc/umb_latest/'))
     # parser.add_argument('--mini-data-dir', type=Path, default=Path('/media/data1/odinsynth-mini'))
     parser.add_argument('--hybrid', action='store_true')
-    parser.add_argument('--num-queries', type=int, default=10)
-    parser.add_argument('--min-span-length', type=int, default=1)
-    parser.add_argument('--max-span-length', type=int, default=1)
-    parser.add_argument('--num-matches', type=int, default=5)
-    parser.add_argument('--fields-word-weight', type=int, default=1)
-    parser.add_argument('--fields-lemma-weight', type=int, default=1)
-    parser.add_argument('--fields-tag-weight', type=int, default=1)
-    parser.add_argument('--fields-entity-weight', type=int, default=0)
+    parser.add_argument('--num_queries', type=int, default=10)
+    parser.add_argument('--min_span_length', type=int, default=1)
+    parser.add_argument('--max_span_length', type=int, default=1)
+    parser.add_argument('--num_matches', type=int, default=5)
+    parser.add_argument('--fields_word_weight', type=int, default=1)
+    parser.add_argument('--fields_lemma_weight', type=int, default=1)
+    parser.add_argument('--fields_tag_weight', type=int, default=1)
+    parser.add_argument('--fields_entity_weight', type=int, default=0)
     parser.add_argument('--rule_type', type=str, choices=['surface', 'syntax', 'enhanced_syntax', 'simplified_syntax'])
-    parser.add_argument('--save_path', type=str)
+    parser.add_argument('--save_path', type=str, default='Where to save the resulting rules')
+    parser.add_argument('--docs_dir', type=str, default='/data/nlp/corpora/softrules_221010/fstacred/odinson/docs')
+    parser.add_argument('--data_paths', nargs='+', help='A list of paths to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
     args = parser.parse_args()
 
     dict_args = vars(args)
+    docs_dir  = dict_args['docs_dir']
 
     ca = {
         "or": 0,
@@ -106,8 +108,7 @@ if __name__ == '__main__':
     gen = RuleGeneration2(None, 
                     min_span_length=dict_args['min_span_length'], 
                     max_span_length=dict_args['max_span_length'], 
-                    fields={'word': dict_args['fields_word_weight'], 'lemma': 0, 
-                    'tag': dict_args['fields_tag_weight'], 'entity': 0}, 
+                    fields={'word': dict_args['fields_word_weight'], 'lemma': dict_args['fields_lemma_weight'], 'tag': dict_args['fields_tag_weight'], 'entity': 0}, 
                     num_matches=dict_args['num_matches'],
                     constraint_actions=ca,
                     surface_actions=sa,
@@ -127,39 +128,11 @@ if __name__ == '__main__':
         rule_type = 3
     else:
         raise ValueError("Unknown rule type")
+
+    # Read the data in the output data
+    # We will generate rules on this
     output_data = {}
-    for path in [
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160291.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160292.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160293.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160294.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_5_shots_10K_episodes_3q_seed_160290.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_5_shots_10K_episodes_3q_seed_160291.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_5_shots_10K_episodes_3q_seed_160292.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_5_shots_10K_episodes_3q_seed_160293.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_5_shots_10K_episodes_3q_seed_160294.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_1_shots_10K_episodes_3q_seed_160290.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_1_shots_10K_episodes_3q_seed_160291.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_1_shots_10K_episodes_3q_seed_160292.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_1_shots_10K_episodes_3q_seed_160293.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_1_shots_10K_episodes_3q_seed_160294.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_5_shots_10K_episodes_3q_seed_160290.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_5_shots_10K_episodes_3q_seed_160291.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_5_shots_10K_episodes_3q_seed_160292.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_5_shots_10K_episodes_3q_seed_160293.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/dev/5_way_5_shots_10K_episodes_3q_seed_160294.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_1_shots_10K_episodes_3q_seed_160290.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_1_shots_10K_episodes_3q_seed_160291.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_1_shots_10K_episodes_3q_seed_160292.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_1_shots_10K_episodes_3q_seed_160293.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_1_shots_10K_episodes_3q_seed_160294.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_5_shots_10K_episodes_3q_seed_160290.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_5_shots_10K_episodes_3q_seed_160291.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_5_shots_10K_episodes_3q_seed_160292.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_5_shots_10K_episodes_3q_seed_160293.json',
-        '/data/nlp/corpora/softrules/tacred_fewshot/test/5_way_5_shots_10K_episodes_3q_seed_160294.json',
-        ]:
+    for path in dict_args['data_paths']:
         with open(path) as fin:
             data = json.load(fin)
             for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
@@ -173,11 +146,6 @@ if __name__ == '__main__':
                             output_data[ss['id']] = ss
                 for test_sentence, relation in zip(meta_test, relations[1]):
                     if test_sentence['id'] in output_data:
-                        if output_data[test_sentence['id']] != test_sentence:
-                            print("\n")
-                            print(output_data[test_sentence['id']])
-                            print(test_sentence)
-                            print("\n")
                         assert(output_data[test_sentence['id']] == test_sentence)
                     else:
                         output_data[test_sentence['id']] = test_sentence
@@ -188,9 +156,9 @@ if __name__ == '__main__':
     # The generation process
     for (i, line) in tqdm.tqdm(enumerate(output), total=len(output)):
 
-        filename = line['id'] + '.json.gz'
-        # We know that we processed each file and we saved it using its id as its name
-        sentence = Document.from_file(f'/data/nlp/corpora/softrules_221010/fstacred/odinson/docs/{filename}').sentences[0] # Sentence.from_dict(sentence)
+        filename = line_to_hash(line) + '.json.gz' # line['id'] + '.json.gz'
+        # We know that we processed each file and we saved it a line_to_hash(line)
+        sentence = Document.from_file(f'{docs_dir}/{filename[:2]}/{filename}').sentences[0] # Sentence.from_dict(sentence)
 
         sentence_tokens     = sentence.get_field("raw").tokens
         sentence_tokens_str = ''.join(sentence_tokens)
@@ -223,24 +191,8 @@ if __name__ == '__main__':
 
         # Small sanity check \SANITY
         # The tokens should still be inside 
-        if ''.join(until_first_entity) not in sentence_tokens_str:
-            print('\n\n')
-            print(len(Document.from_file(f'/data/nlp/corpora/softrules_221010/tacred/odinson/docs/{filename}').sentences))
-            print(sentence_tokens)
-            print(''.join(until_first_entity))
-            print(sentence_tokens_str)
-            print(line['token'])
-            print('\n\n')
-            print(i)
-            print(until_first_entity)
-            print(first_entity)
-            print(inbetween_entities)
-            print(second_entity)
-            print(after_second_entity)
-            print(after_first_entity)
-            print(until_second_entity)
-            exit()
-        
+        assert(''.join(until_first_entity) in sentence_tokens_str)
+ 
         # A slightly convoluted way of identifying the boundaries
         # The way we do it is by identifying the new start and the new end by matching it against
         # the concatenated sentence
@@ -249,12 +201,6 @@ if __name__ == '__main__':
         new_first_entity_charend    = new_first_entity_charstart + len(''.join(first_entity))
         new_second_entity_charstart = sentence_tokens_str.index(''.join(until_second_entity)) + len(''.join(until_second_entity))
         new_second_entity_charend   = new_second_entity_charstart + len(''.join(second_entity))
-        # print(new_first_entity_charstart)
-        # print(new_first_entity_charend)
-        # print(new_second_entity_charstart)
-        # print(new_second_entity_charend)
-        # exit()
-
 
         char_lenghts            = np.cumsum([len(x) for x in sentence_tokens])
         new_first_entity_start  = np.where(char_lenghts>new_first_entity_charstart)[0][0]
@@ -272,32 +218,10 @@ if __name__ == '__main__':
 
         # \SANITY check
         # The entities should be equal with the original entities
-        if sentence_tokens[new_first_entity_start:new_first_entity_end] != first_entity:
-            print("\nA\n")
-            print(line)
-            print(sentence_tokens)
-            print(sentence_tokens_str)
-            print(sentence_tokens[new_first_entity_start:new_first_entity_end])
-            print(new_first_entity_start)
-            print(new_first_entity_end)
-            print(first_entity)
-            print(first_entity_start)
-            print(first_entity_end)
-            print(list(zip(line['token'], line['stanford_ner'])))
-            exit()
-        if sentence_tokens[new_second_entity_start:new_second_entity_end] != second_entity:
-            print("\nB\n")
-            print(line)
-            print(sentence_tokens)
-            print(sentence_tokens_str)
-            print(sentence_tokens[new_second_entity_start:new_second_entity_end])
-            print(new_second_entity_start)
-            print(new_second_entity_end)
-            print(second_entity)
-            print(second_entity_start)
-            print(second_entity_end)
-            print(list(zip(line['token'], line['stanford_ner'])))
-            exit()
+        assert(sentence_tokens[new_first_entity_start:new_first_entity_end] == first_entity)
+        assert(sentence_tokens[new_second_entity_start:new_second_entity_end] == second_entity)
+        # The first entity should really be first
+        assert(first_entity_end <= second_entity_start)
 
         raw_tokens = sentence.get_field("raw").tokens    
 
@@ -316,34 +240,13 @@ if __name__ == '__main__':
             else:
                 raise ValueError("Unknown rule type")
 
-
             if matched_tokens == '':
                 matched_by_rule = f'{head} {tail}'.lower()
             else:
                 matched_by_rule = f'{head} {matched_tokens} {tail}'.lower()
 
-            # if args.hybrid:
-            #     query = gen_rule(sentence=sentence, span=([line['headStart'], line['headEnd']], [line['tailStart'], line['tailEnd']]))
-            # else:
-            #     query = gen_rule(sentence=sentence, span=(line['headEnd'], line['tailStart']))
-        else:
-            print(first_entity_end, second_entity_start)
-            print("HERE")
-            query           = None
-            matched_by_rule = None
-        # print(line['sentenceJson'])
-        # print(sentence)
-        # print(line)
-        # print(' '.join(sentence_tokens))
-        # exit()
-        # print('  query:', query)
         keep_queries = []
-        # if not validate_query(query):
-            # print(line)
-            # print('  rejected', query)
-            # exit()
-            # continue
-        # print('  searching')
+
         if str(query) is None or query is None:
             new_query = f'[entity={head}]+' + ' ' + f'[entity={tail}]+'
         elif query == []:
@@ -366,34 +269,6 @@ if __name__ == '__main__':
             else:
                 raise ValueError("Unknown rule type")
 
-        # print("\n\n\n\n")
-        # print(query)
-        # print(new_query)
-        # print(matched_by_rule)
-        # print("\n\n\n\n")
-        # exit()
-        # print(f'[entity={head}]+' + ' ' + f'[entity={tail}]+')
-        # print(str(new_query))
-        # print(ee.search(f'[entity={head}]+' + ' ' + f'[entity={tail}]+', max_hits=10))
-        # print(ee.search(str(new_query), max_hits=10))
-        # r = ee.search(str(new_query), max_hits=10)
-        # exit()
-        # icgt = ic.get_results(str(new_query), max_hits=1_000_000_000)
-        # print("\n\n\n\n")
-        # for (idx, x) in enumerate(icgt['matches']):
-        #     # print(x)
-        #     # exit()
-        #     if 'I am happy to see that New Horizons' in ' '.join(x['sentence']['fields'][0]['tokens']):
-        #         print(i)
-        #         print(' '.join(x['sentence']['fields'][0]['tokens']), x['sentence']['fields'][0]['tokens'][x['match'][0]:x['match'][1]])
-        # print("\n\n\n\n")
-        # exit()
-        # print(new_query)
-        # print(line['headEnd'])
-        # print(type(line['headEnd']))
-        # print(line['tailEnd'])
-        # print(type(line['tailEnd']))
-        # matched_tokens = raw_tokens[line['headStart']:line['tailEnd']] 
         current = {
             'id'                       : line['id'],
             'query'                    : new_query,
@@ -427,27 +302,25 @@ if __name__ == '__main__':
         fout.write('\n')
         if i % 10_000 == 0:
             fout.flush()
-                    # result.append(current)
-                    # print(current)
-                    # exit()
 
-    # queries = list(filter(lambda x: validate_query(x), queries))
-    # queries = list(filter(lambda x: validate_query(x), queries))
-    # if not validate_query(queries):
-    #     # print('  rejected')
-    #     continue
-    # # print('  searching')
-    # data = wait_for_function(20, ic.get_results, query, args.num_matches)
-    # if data is None:
-    #     # print('  timeout')
-    #     continue
-    # # print(f'  {data["num_matches"]} sentences found')
-    # if data['num_matches'] > 0:
-    #     # print('  saving results')
-    # if len(keep_queries) > 0:
-        # result.append(keep_queries)
     fout.close()
-    # exit()
-    # with open(args.out_dir/f'query_{uuid.uuid4()}.json', 'w') as f:
-    #     print(args.out_dir/f'query_{uuid.uuid4()}.json', keep_queries)
-    #     json.dump(result, f, indent=4)
+
+
+
+
+"""
+python main_fewshot.py --min_span_length 1 --max_span_length 15 --num_matches 3 --rule_type 'enhanced_syntax' --save_path "tmp/enhanced_syntax.jsonl" \
+    --docs_dir "/data/nlp/corpora/fs-re-dataset-paper/models/softrules/odinson/tacred/docs/" \
+    --data_paths \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160290.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160291.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160292.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160293.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160294.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160290.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160291.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160292.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160293.json" \
+        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160294.json"
+
+"""
