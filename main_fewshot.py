@@ -20,11 +20,11 @@ import tqdm
 import random
 from odinson.gateway import OdinsonGateway
 from odinson.ruleutils.queryast import FieldConstraint, NotConstraint, RepeatSurface, TokenSurface
-from odinsynth.rulegen import RuleGeneration
-from odinsynth.index import IndexedCorpus
-from odinsynth.util import read_tsv_mapping, weighted_choice
+from rulegen import RuleGeneration
+from index import IndexedCorpus
+from util import read_tsv_mapping, weighted_choice
 from odinson.gateway.document import Sentence, Document
-from rulegen2 import RuleGeneration2
+from rulegen import RuleGeneration
 from unroll_docs import line_to_hash
 
 def quit_function():
@@ -80,6 +80,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_path', type=str, default='Where to save the resulting rules')
     parser.add_argument('--docs_dir', type=str, default='/data/nlp/corpora/softrules_221010/fstacred/odinson/docs')
     parser.add_argument('--data_paths', nargs='+', help='A list of paths to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
+    parser.add_argument('--type_of_data', type=str, default='fewshot', choices=['fewshot', 'supervised'], help="We can read two types of JSON formatted data: `fewshot`, or `supervised`")
     args = parser.parse_args()
 
     dict_args = vars(args)
@@ -105,7 +106,7 @@ if __name__ == '__main__':
         "+": 1,
     }
 
-    gen = RuleGeneration2(None, 
+    gen = RuleGeneration(None, 
                     min_span_length=dict_args['min_span_length'], 
                     max_span_length=dict_args['max_span_length'], 
                     fields={'word': dict_args['fields_word_weight'], 'lemma': dict_args['fields_lemma_weight'], 'tag': dict_args['fields_tag_weight'], 'entity': 0}, 
@@ -134,24 +135,31 @@ if __name__ == '__main__':
     output_data = {}
     for path in dict_args['data_paths']:
         with open(path) as fin:
-            data = json.load(fin)
-            for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
-                meta_train = episode['meta_train']
-                meta_test  = episode['meta_test']
-                for support_sentences_per_relation, relation in zip(meta_train, relations[0]):
-                    for ss in support_sentences_per_relation:
-                        if ss['id'] in output_data:
-                            assert(output_data[ss['id']] == ss)
+            if docs_dir['type_of_data'] == 'fewshot':
+                data = json.load(fin)
+                for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
+                    meta_train = episode['meta_train']
+                    meta_test  = episode['meta_test']
+                    for support_sentences_per_relation, relation in zip(meta_train, relations[0]):
+                        for ss in support_sentences_per_relation:
+                            if ss['id'] in output_data:
+                                assert(output_data[ss['id']] == ss)
+                            else:
+                                output_data[ss['id']] = ss
+                    for test_sentence, relation in zip(meta_test, relations[1]):
+                        if test_sentence['id'] in output_data:
+                            assert(output_data[test_sentence['id']] == test_sentence)
                         else:
-                            output_data[ss['id']] = ss
-                for test_sentence, relation in zip(meta_test, relations[1]):
-                    if test_sentence['id'] in output_data:
-                        assert(output_data[test_sentence['id']] == test_sentence)
-                    else:
-                        output_data[test_sentence['id']] = test_sentence
+                            output_data[test_sentence['id']] = test_sentence
+            else:
+                for line in fin:
+                    json_line = json.loads(line)
+                    data.append(json_line)
 
     output = list(output_data.values())
     print(len(output))
+    print(output[0])
+    exit()
 
     # The generation process
     for (i, line) in tqdm.tqdm(enumerate(output), total=len(output)):

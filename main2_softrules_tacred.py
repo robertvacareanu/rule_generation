@@ -24,7 +24,7 @@ from odinsynth.rulegen import RuleGeneration
 from odinsynth.index import IndexedCorpus
 from odinsynth.util import read_tsv_mapping, weighted_choice
 from odinson.gateway.document import Sentence, Document
-from rulegen2 import RuleGeneration2
+from rulegen import RuleGeneration
 
 def quit_function():
     thread.interrupt_main()
@@ -116,7 +116,7 @@ if __name__ == '__main__':
         "+": 1,
     }
 
-    gen = RuleGeneration2(None, 
+    gen = RuleGeneration(None, 
                     min_span_length=dict_args['min_span_length'], 
                     max_span_length=dict_args['max_span_length'], 
                     fields={'word': dict_args['fields_word_weight'], 'lemma': 0, 

@@ -6,7 +6,7 @@ from odinson.gateway import *
 from odinson.gateway.engine import ExtractorEngine
 from odinson.gateway.results import ScoreDoc
 from odinson.ruleutils.queryast import *
-from .util import read_tsv_mapping
+from util import read_tsv_mapping
 
 class IndexedCorpus:
     def __init__(self, ee: ExtractorEngine, docs_dir: Union[str, Path], docs_index: map[str, str]):

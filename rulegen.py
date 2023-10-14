@@ -6,15 +6,15 @@ from odinson.gateway import *
 from odinson.ruleutils import *
 from odinson.ruleutils.queryast import *
 from odinson.ruleutils.queryparser import parse_traversal
-from odinsynth.index import IndexedCorpus
-from odinsynth.util import weighted_choice, random_span, random_spans
+from index import IndexedCorpus
+from util import weighted_choice, random_span, random_spans
 from odinson.gateway import *
 from odinson.ruleutils import *
 from odinson.ruleutils.queryast import *
 from odinson.ruleutils.queryparser import parse_traversal
 from typing import Optional, List
 
-class RuleGeneration2:
+class RuleGeneration:
     def __init__(
         self, 
         corpus: IndexedCorpus, 
