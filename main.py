@@ -135,31 +135,31 @@ if __name__ == '__main__':
     output_data = {}
     for path in dict_args['data_paths']:
         with open(path) as fin:
-            if docs_dir['type_of_data'] == 'fewshot':
-                data = json.load(fin)
+            data = json.load(fin)
+            if dict_args['type_of_data'] == 'fewshot':
                 for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
                     meta_train = episode['meta_train']
                     meta_test  = episode['meta_test']
                     for support_sentences_per_relation, relation in zip(meta_train, relations[0]):
                         for ss in support_sentences_per_relation:
-                            if ss['id'] in output_data:
-                                assert(output_data[ss['id']] == ss)
+                            if line_to_hash(ss, use_all_fields=True) in output_data:
+                                assert(output_data[line_to_hash(ss, use_all_fields=True)] == ss)
                             else:
-                                output_data[ss['id']] = ss
+                                output_data[line_to_hash(ss, use_all_fields=True)] = ss
                     for test_sentence, relation in zip(meta_test, relations[1]):
-                        if test_sentence['id'] in output_data:
-                            assert(output_data[test_sentence['id']] == test_sentence)
+                        if line_to_hash(test_sentence, use_all_fields=True) in output_data:
+                            assert(output_data[line_to_hash(test_sentence, use_all_fields=True)] == test_sentence)
                         else:
-                            output_data[test_sentence['id']] = test_sentence
+                            output_data[line_to_hash(test_sentence, use_all_fields=True)] = test_sentence
             else:
-                for line in fin:
-                    json_line = json.loads(line)
-                    data.append(json_line)
+                for (relation, relation_data) in data.items():
+                    for sentence in relation_data:
+                        if line_to_hash(sentence, use_all_fields=True) in output_data:
+                            assert(output_data[line_to_hash(sentence, use_all_fields=True)] == {**sentence, 'relation': relation})
+                        else:
+                            output_data[line_to_hash(sentence, use_all_fields=True)] = {**sentence, 'relation': relation}
 
     output = list(output_data.values())
-    print(len(output))
-    print(output[0])
-    exit()
 
     # The generation process
     for (i, line) in tqdm.tqdm(enumerate(output), total=len(output)):
@@ -279,6 +279,7 @@ if __name__ == '__main__':
 
         current = {
             'id'                       : line['id'],
+            'line_to_hash'             : line_to_hash(line),
             'query'                    : new_query,
             # 'sentence'                 : ' '.join(raw_tokens),
             # 'match'                    : ' '.join(matched_tokens),
