@@ -315,21 +315,3 @@ if __name__ == '__main__':
     fout.close()
 
 
-
-
-"""
-python main_fewshot.py --min_span_length 1 --max_span_length 15 --num_matches 3 --rule_type 'enhanced_syntax' --save_path "tmp/enhanced_syntax.jsonl" \
-    --docs_dir "/data/nlp/corpora/fs-re-dataset-paper/models/softrules/odinson/tacred/docs/" \
-    --data_paths \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160290.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160291.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160292.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160293.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_1_shots_10K_episodes_3q_seed_160294.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160290.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160291.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160292.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160293.json" \
-        "/data/nlp/corpora/fs-re-dataset-paper/Few-Shot_Datasets/TACRED/episodes/test_episodes/5_way_5_shots_10K_episodes_3q_seed_160294.json"
-
-"""
