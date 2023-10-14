@@ -5,22 +5,25 @@ import json
 import tqdm
 import hashlib
 from typing import Set, Tuple, Dict, Any
+from pathlib import Path
 
+def line_to_hash(line: Dict[str, Any], use_all_fields: bool = False):
+    if use_all_fields:
+        name_variables = [
+            str(' '.join(line['token'])),
+            str(line['subj_start']),
+            str(line['subj_end']),
+            str(line['obj_start']),
+            str(line['obj_end']),
+            str(line['subj_type']),
+            str(line['obj_type']),
+        ]
+    else:
+        name_variables = [
+            str(' '.join(line['token'])),
+        ]
 
-def line_to_hash(line: Dict[str, Any]):
-    name_variables = [
-        str(line['id']),
-        str(line['docid']),
-        str(line['relation']),
-        str(' '.join(line['token'])),
-        str(line['subj_start']),
-        str(line['subj_end']),
-        str(line['obj_start']),
-        str(line['obj_end']),
-        str(line['subj_type']),
-        str(line['obj_type']),
-    ]
-    return hashlib.md5(''.join(name_variables).encode('utf-8')).hexdigest().lower()
+    return hashlib.md5('-'.join(name_variables).encode('utf-8')).hexdigest().lower()
 
 def read_fewshotdata(filename) -> Set[Tuple[str, str]]:
     text_set = set()
