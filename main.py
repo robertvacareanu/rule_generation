@@ -279,7 +279,7 @@ if __name__ == '__main__':
 
         current = {
             'id'                       : line['id'],
-            'line_to_hash'             : line_to_hash(line),
+            'line_to_hash'             : line_to_hash(line, use_all_fields=True),
             'query'                    : new_query,
             # 'sentence'                 : ' '.join(raw_tokens),
             # 'match'                    : ' '.join(matched_tokens),
