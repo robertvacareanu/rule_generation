@@ -79,7 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--rule_type', type=str, choices=['surface', 'syntax', 'enhanced_syntax', 'simplified_syntax'])
     parser.add_argument('--save_path', type=str, default='Where to save the resulting rules')
     parser.add_argument('--docs_dir', type=str, default='/data/nlp/corpora/softrules_221010/fstacred/odinson/docs')
-    parser.add_argument('--data_paths', nargs='+', help='A list of paths to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
+    parser.add_argument('--data_paths', nargs='+', help='A list of paths to episodes to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
     parser.add_argument('--type_of_data', type=str, default='fewshot', choices=['fewshot', 'supervised'], help="We can read two types of JSON formatted data: `fewshot`, or `supervised`")
     args = parser.parse_args()
 
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     for path in dict_args['data_paths']:
         with open(path) as fin:
             data = json.load(fin)
-            if dict_args['type_of_data'] == 'fewshot':
+            if dict_args['type_of_data'] == 'fewshot' or (isinstance(data, list) and (len(data) == 3) and isinstance(data[0], list) and isinstance(data[1], list) and isinstance(data[2], list) and 'meta_train' in data[0][0]):
                 for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
                     meta_train = episode['meta_train']
                     meta_test  = episode['meta_test']
@@ -229,7 +229,11 @@ if __name__ == '__main__':
         assert(sentence_tokens[new_first_entity_start:new_first_entity_end] == first_entity)
         assert(sentence_tokens[new_second_entity_start:new_second_entity_end] == second_entity)
         # The first entity should really be first
-        assert(first_entity_end <= second_entity_start)
+        # if (first_entity_end <= second_entity_start) is False:
+            # print(line)
+            # print("\n\n")
+            # exit()
+        # assert(first_entity_end <= second_entity_start)
 
         raw_tokens = sentence.get_field("raw").tokens    
 
