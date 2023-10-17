@@ -57,6 +57,15 @@ def validate_query(query):
         return False
     return True
 
+def assertion_check(x, y, check_on=['relation', 'token', 'subj_start', 'subj_end', 'obj_start', 'obj_end', 'subj_type', 'obj_type']):
+    for check in check_on:
+        if x[check] != y[check]:
+            print("-"*20)
+            print(x)
+            print(y)
+            print(check, x[check], y[check])
+            print("-"*20)
+        assert(x[check] == y[check])
 
 # python main2_softrules_fstacred.py --out-dir data/test_rules/ --min-span-length 1 --max-span-length 15 --num-queries 2 --num-matches 3 --rule_type 'surface' --save_path "/home/rvacareanu/projects/temp/odinsynth2/data/softrules/fstacred/surface.jsonl" && 
 # python main2_softrules_fstacred.py --out-dir data/test_rules/ --min-span-length 1 --max-span-length 15 --num-queries 2 --num-matches 3 --rule_type 'simplified_syntax' --save_path "/home/rvacareanu/projects/temp/odinsynth2/data/softrules/fstacred/simplified_syntax.jsonl" && 
