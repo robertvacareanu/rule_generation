@@ -90,6 +90,8 @@ if __name__ == '__main__':
     parser.add_argument('--docs_dir', type=str, default='/data/nlp/corpora/softrules_221010/fstacred/odinson/docs')
     parser.add_argument('--data_paths', nargs='+', help='A list of paths to episodes to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
     parser.add_argument('--type_of_data', type=str, default='fewshot', choices=['fewshot', 'supervised'], help="We can read two types of JSON formatted data: `fewshot`, or `supervised`")
+    parser.add_argument('--start_from', type=int, default=0)
+    parser.add_argument('--end_at',     type=int, default=300_000)
     args = parser.parse_args()
 
     dict_args = vars(args)
@@ -152,23 +154,32 @@ if __name__ == '__main__':
                     for support_sentences_per_relation, relation in zip(meta_train, relations[0]):
                         for ss in support_sentences_per_relation:
                             if line_to_hash(ss, use_all_fields=True) in output_data:
-                                assert(output_data[line_to_hash(ss, use_all_fields=True)] == ss)
+                                # if output_data[line_to_hash(ss, use_all_fields=True)] != ss:
+                                #     print(line_to_hash(ss, use_all_fields=True))
+                                #     print(output_data[line_to_hash(ss, use_all_fields=True)])
+                                #     print(ss)
+                                #     exit()
+                                assertion_check(output_data[line_to_hash(ss, use_all_fields=True)], ss)
                             else:
                                 output_data[line_to_hash(ss, use_all_fields=True)] = ss
                     for test_sentence, relation in zip(meta_test, relations[1]):
                         if line_to_hash(test_sentence, use_all_fields=True) in output_data:
-                            assert(output_data[line_to_hash(test_sentence, use_all_fields=True)] == test_sentence)
+                            assertion_check(output_data[line_to_hash(test_sentence, use_all_fields=True)], test_sentence)
+                            # assert(output_data[line_to_hash(test_sentence, use_all_fields=True)] == test_sentence)
                         else:
                             output_data[line_to_hash(test_sentence, use_all_fields=True)] = test_sentence
             else:
+                # Read few_shot_data style (not episodes, but the data that was used to make the episodes)
                 for (relation, relation_data) in data.items():
                     for sentence in relation_data:
+                        sentence = {**sentence, 'relation': relation}
                         if line_to_hash(sentence, use_all_fields=True) in output_data:
-                            assert(output_data[line_to_hash(sentence, use_all_fields=True)] == {**sentence, 'relation': relation})
+                            assertion_check(output_data[line_to_hash(sentence, use_all_fields=True)], {**sentence, 'relation': relation})
+                            # assert(output_data[line_to_hash(sentence, use_all_fields=True)] == {**sentence, 'relation': relation})
                         else:
                             output_data[line_to_hash(sentence, use_all_fields=True)] = {**sentence, 'relation': relation}
 
-    output = list(output_data.values())
+    output = [item[1] for item in sorted(output_data.items(), key=lambda x: x[0])][dict_args['start_from']:dict_args['end_at']]
 
     # The generation process
     for (i, line) in tqdm.tqdm(enumerate(output), total=len(output)):
