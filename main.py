@@ -136,7 +136,7 @@ if __name__ == '__main__':
     for path in dict_args['data_paths']:
         with open(path) as fin:
             data = json.load(fin)
-            if dict_args['type_of_data'] == 'fewshot' or (isinstance(data, list) and (len(data) == 3) and isinstance(data[0], list) and isinstance(data[1], list) and isinstance(data[2], list) and 'meta_train' in data[0][0]):
+            if (isinstance(data, list) and (len(data) == 3) and isinstance(data[0], list) and isinstance(data[1], list) and isinstance(data[2], list) and 'meta_train' in data[0][0]):
                 for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
                     meta_train = episode['meta_train']
                     meta_test  = episode['meta_test']
