@@ -135,6 +135,7 @@ if __name__ == '__main__':
 
     # Read the data in the output data
     # We will generate rules on this
+    # This is a dict from `line_to_hash` to the actual data. The idea is to de-duplicate the data (for efficiency reasons)
     output_data = {}
     for path in dict_args['data_paths']:
         with open(path) as fin:
