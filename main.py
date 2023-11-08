@@ -178,6 +178,7 @@ if __name__ == '__main__':
                         else:
                             output_data[line_to_hash(sentence, use_all_fields=True)] = {**sentence, 'relation': relation}
 
+    print(len(output_data))
     output = [item[1] for item in sorted(output_data.items(), key=lambda x: x[0])][dict_args['start_from']:dict_args['end_at']]
 
     # The generation process
