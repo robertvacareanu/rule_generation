@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Generate rules on TACRED
+Generate rules on TACRED-like data
 """
 
 from asyncio import wait_for
