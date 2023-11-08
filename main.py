@@ -89,7 +89,6 @@ if __name__ == '__main__':
     parser.add_argument('--save_path', type=str, default='Where to save the resulting rules')
     parser.add_argument('--docs_dir', type=str, default='/data/nlp/corpora/softrules_221010/fstacred/odinson/docs')
     parser.add_argument('--data_paths', nargs='+', help='A list of paths to episodes to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
-    parser.add_argument('--type_of_data', type=str, default='fewshot', choices=['fewshot', 'supervised'], help="We can read two types of JSON formatted data: `fewshot`, or `supervised`")
     parser.add_argument('--start_from', type=int, default=0)
     parser.add_argument('--end_at',     type=int, default=300_000)
     args = parser.parse_args()
