@@ -2,27 +2,20 @@
 
 """
 Generate rules on TACRED-like data
+
+Note: This implementation is very TACRED-like centric.
+Also, it assumes that all sentences are processed and store as one sentence per file.
 """
 
-from asyncio import wait_for
-from collections import defaultdict
-import os
 import json
 import argparse
-import uuid
-import pandas as pd
 import numpy as np
-from pathlib import Path
 import threading
 import _thread as thread
-from odinson.ruleutils.queryparser import parse_surface
 import tqdm
 import random
-from odinson.gateway import OdinsonGateway
 from odinson.ruleutils.queryast import FieldConstraint, NotConstraint, RepeatSurface, TokenSurface
 from rulegen import RuleGeneration
-from index import IndexedCorpus
-from util import read_tsv_mapping, weighted_choice
 from odinson.gateway.document import Sentence, Document
 from rulegen import RuleGeneration
 from unroll_docs import line_to_hash
@@ -178,7 +171,6 @@ if __name__ == '__main__':
                         else:
                             output_data[line_to_hash(sentence, use_all_fields=True)] = {**sentence, 'relation': relation}
 
-    print(len(output_data))
     output = [item[1] for item in sorted(output_data.items(), key=lambda x: x[0])][dict_args['start_from']:dict_args['end_at']]
 
     # The generation process
