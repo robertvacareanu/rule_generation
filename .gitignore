@@ -130,3 +130,7 @@ dmypy.json
 
 .history/
 data*/
+
+.vscode
+.metals
+.history
