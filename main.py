@@ -172,6 +172,10 @@ if __name__ == '__main__':
                         else:
                             output_data[line_to_hash(sentence, use_all_fields=True)] = {**sentence, 'relation': relation}
 
+    print(len(output_data))
+    # After the deduplication process, sort (just to avoid any potential changes in the order introduced by the dict),
+    # then select a subset (helps when there is a large number of sentences)
+    # This is what we will work with to generate rules. We will generate 1 rule for each element in this list
     output = [item[1] for item in sorted(output_data.items(), key=lambda x: x[0])][dict_args['start_from']:dict_args['end_at']]
 
     # The generation process
