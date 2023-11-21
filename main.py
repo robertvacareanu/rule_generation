@@ -140,6 +140,7 @@ if __name__ == '__main__':
     for path in dict_args['data_paths']:
         with open(path) as fin:
             data = json.load(fin)
+            # Few-Shot Episode style
             if (isinstance(data, list) and (len(data) == 3) and isinstance(data[0], list) and isinstance(data[1], list) and isinstance(data[2], list) and 'meta_train' in data[0][0]):
                 for episode, relations in tqdm.tqdm(zip(data[0], data[2]), total=len(data[0])):
                     meta_train = episode['meta_train']
@@ -161,7 +162,8 @@ if __name__ == '__main__':
                             # assert(output_data[line_to_hash(test_sentence, use_all_fields=True)] == test_sentence)
                         else:
                             output_data[line_to_hash(test_sentence, use_all_fields=True)] = test_sentence
-            else:
+            # Few-Shot datas style (dictionary, going from relation (e.g. `per:age`) to list of examples with that relation)
+            elif isinstance(data, dict) and isinstance(list(data.keys())[0], str) and isinstance(list(data.values())[0], list):
                 # Read few_shot_data style (not episodes, but the data that was used to make the episodes)
                 for (relation, relation_data) in data.items():
                     for sentence in relation_data:
@@ -171,7 +173,16 @@ if __name__ == '__main__':
                             # assert(output_data[line_to_hash(sentence, use_all_fields=True)] == {**sentence, 'relation': relation})
                         else:
                             output_data[line_to_hash(sentence, use_all_fields=True)] = {**sentence, 'relation': relation}
-
+            # Read the original style (list of dicts) (e.g. `/data/nlp/corpora/mlmtl/data/tacred/tacred/data/json/train.json`)
+            elif isinstance(data, list) and isinstance(data[0], dict) and 'token' in data[0] and 'relation' in data[0]:
+                for sentence in data:
+                    if line_to_hash(sentence, use_all_fields=True) in output_data:
+                        assertion_check(output_data[line_to_hash(sentence, use_all_fields=True)], sentence)
+                        # assert(output_data[line_to_hash(sentence, use_all_fields=True)] == sentence)
+                    else:
+                        output_data[line_to_hash(sentence, use_all_fields=True)] = sentence
+            else:
+                raise ValueError(f"Unknown format for path: {path}")
     print(len(output_data))
     # After the deduplication process, sort (just to avoid any potential changes in the order introduced by the dict),
     # then select a subset (helps when there is a large number of sentences)
@@ -299,7 +310,7 @@ if __name__ == '__main__':
                 raise ValueError("Unknown rule type")
 
         current = {
-            'id'                       : line['id'],
+            # 'id'                       : line['id'],
             'line_to_hash'             : line_to_hash(line, use_all_fields=True),
             'query'                    : new_query,
             # 'sentence'                 : ' '.join(raw_tokens),
