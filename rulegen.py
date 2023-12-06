@@ -419,3 +419,36 @@ class RuleGeneration:
         return [str(x) for x in nodes], ' '.join(matched_tokens)
 
 
+    def random_wordsonlysurface_rule(
+        self,
+        sentence: Sentence,
+        span: tuple[int, int],
+    ) -> Tuple[str, str]:
+        """
+        Returns a random surface rule.
+        If sentence and span are provided, the generated rule will match it.
+        If only sentence is provided, the generated rule will match a random span in the sentence.
+        If a document is provided, a random sentence and span will be used to generate the rule.
+        If sentence is provided then document is ignored.
+        If sentence is not provided then span is ignored.
+        """
+        # print("\tRANDOM_SURFACE_RULE open")
+        # ensure we have a sentence and a span
+        start, stop = span
+        if start == stop:
+            return None, ''
+
+        # make a token constraint for each token in the span
+        constraints = self.make_field_constraints(sentence, start, stop)
+        # add some random token constraints
+        constraints = self.add_random_constraints(constraints)
+        # wrap constraints
+        nodes = [TokenSurface(c) for c in constraints]
+        all_nodes = self.add_random_surface(nodes)
+
+        sentence_tokens = sentence.get_field("raw").tokens
+        matched_tokens = [sentence_tokens[x] for x in range(start, stop)]
+
+
+        # We also return the matched tokens. This is needed for the way we will use this in the future
+        return str([self.concat_surface_nodes(x) for x in all_nodes][-1]), ' '.join(matched_tokens)
