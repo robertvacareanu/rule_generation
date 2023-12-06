@@ -78,7 +78,7 @@ if __name__ == '__main__':
     parser.add_argument('--fields_lemma_weight', type=int, default=1)
     parser.add_argument('--fields_tag_weight', type=int, default=1)
     parser.add_argument('--fields_entity_weight', type=int, default=0)
-    parser.add_argument('--rule_type', type=str, choices=['surface', 'syntax', 'enhanced_syntax', 'simplified_syntax'])
+    parser.add_argument('--rule_type', type=str, choices=['surface', 'syntax', 'enhanced_syntax', 'simplified_syntax', 'surface_words_only'])
     parser.add_argument('--save_path', type=str, default='Where to save the resulting rules')
     parser.add_argument('--docs_dir', type=str, default='/data/nlp/corpora/softrules_221010/fstacred/odinson/docs')
     parser.add_argument('--data_paths', nargs='+', help='A list of paths to episodes to generate rules for', required=True, default=['/data/nlp/corpora/softrules/tacred_fewshot/train/5_way_1_shots_10K_episodes_3q_seed_160290.json'])
@@ -130,6 +130,8 @@ if __name__ == '__main__':
         rule_type = 2
     elif args.rule_type == "enhanced_syntax":
         rule_type = 3
+    elif args.rule_type == "surface_words_only":
+        rule_type = 4
     else:
         raise ValueError("Unknown rule type")
 
@@ -277,6 +279,9 @@ if __name__ == '__main__':
                 query, matched_tokens = gen.random_enhanced_traversal_rule(sentence=sentence, span=([new_first_entity_start, new_first_entity_end], [new_second_entity_start, new_second_entity_end]))
             elif args.rule_type == "simplified_syntax":
                 query, matched_tokens = gen.random_simplified_traversal_rule(sentence=sentence, span=([new_first_entity_start, new_first_entity_end], [new_second_entity_start, new_second_entity_end]))
+            elif args.rule_type   == "surface_words_only":
+                query, matched_tokens = gen.random_surface_rule(sentence=sentence, span=(first_entity_end, second_entity_start))
+                query = matched_tokens
             else:
                 raise ValueError("Unknown rule type")
 
@@ -289,10 +294,10 @@ if __name__ == '__main__':
 
         if str(query) is None or query is None:
             new_query = f'[entity={head}]+' + ' ' + f'[entity={tail}]+'
-        elif query == []:
+        elif query == [] or '':
             if args.rule_type == 'simplified_syntax':
                 new_query = f'[entity={head}]+' + ' (<<|>>) ' + f'[entity={tail}]+'
-            elif args.rule_type == 'surface':
+            elif args.rule_type == 'surface_words_only':
                 new_query = f'[entity={head}]+' + ' ' + f'[entity={tail}]+'
             else:
                 raise ValueError("When we are generating syntax rule, it is impossible that the rule is `[]`. Is everything ok?")
@@ -306,6 +311,8 @@ if __name__ == '__main__':
             elif args.rule_type == "simplified_syntax":
                 # We have to do it this way because, to make it a real odinson rule, we need to specify that syntax
                 new_query = f'[entity={head}]+' + ' (<<|>>) ' + ' (<<|>>) '.join(query) + ' (<<|>>) ' + f'[entity={tail}]+'
+            elif args.rule_type == "surface_words_only":
+                new_query = f'[entity={head}]+ {query} [entity={tail}]+'
             else:
                 raise ValueError("Unknown rule type")
 
